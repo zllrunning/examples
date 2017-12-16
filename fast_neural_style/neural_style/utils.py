@@ -23,13 +23,15 @@ def gram_matrix(y):
     (b, ch, h, w) = y.size()
     features = y.view(b, ch, w * h)
     features_t = features.transpose(1, 2)
-    gram = features.bmm(features_t) / (ch * h * w)
+    gram = features.bmm(features_t) / (ch * h * w)     #batch matmul
     return gram
 
 
 def normalize_batch(batch):
     # normalize using imagenet mean and std
-    mean = batch.data.new(batch.data.size())
+    #传进来的是没有标准化的数据，而vgg网络给进去的数据是经过标准化的，所以此处需要标准化之后送进vgg
+    mean = batch.data.new(batch.data.size())   #batch.data.new()返回一个和batch.data同一数据类型的张量，但是没有维度
+                                               #batch.data.new(batch.data.size())返回一个和batch.data同一类型同一维度的张量
     std = batch.data.new(batch.data.size())
     mean[:, 0, :, :] = 0.485
     mean[:, 1, :, :] = 0.456
