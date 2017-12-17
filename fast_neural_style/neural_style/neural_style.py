@@ -54,7 +54,7 @@ def train(args):
     ])
     style = utils.load_image(args.style_image, size=args.style_size)
     style = style_transform(style)
-    style = style.repeat(args.batch_size, 1, 1, 1)
+    style = style.repeat(args.batch_size, 1, 1, 1)  #将style这张图片复制batch_size份
 
     if args.cuda:
         transformer.cuda()
@@ -64,7 +64,7 @@ def train(args):
     style_v = Variable(style)
     style_v = utils.normalize_batch(style_v)
     features_style = vgg(style_v)
-    gram_style = [utils.gram_matrix(y) for y in features_style]
+    gram_style = [utils.gram_matrix(y) for y in features_style]     #size:[4*64*64, 4*128*128, 4*256*256, 4*512*512]
 
     for e in range(args.epochs):
         transformer.train()
@@ -72,7 +72,7 @@ def train(args):
         agg_style_loss = 0.
         count = 0
         for batch_id, (x, _) in enumerate(train_loader):
-            n_batch = len(x)
+            n_batch = len(x)     #在最后一个batch之前，所有的n_batch=batch_size，但是最后一个batch数量可能不为batch_size
             count += n_batch
             optimizer.zero_grad()
             x = Variable(x)
@@ -92,7 +92,9 @@ def train(args):
             style_loss = 0.
             for ft_y, gm_s in zip(features_y, gram_style):
                 gm_y = utils.gram_matrix(ft_y)
-                style_loss += mse_loss(gm_y, gm_s[:n_batch, :, :])
+                style_loss += mse_loss(gm_y, gm_s[:n_batch, :, :])  #n_batch = len(x)在这就起作用了 
+                #最后一次batch数量不等于的batch_size时，两者的维度就不一样了，这个时候gm_s[:n_batch, :, :]这个操作就可以了
+                #style_loss += mse_loss(gm_y, gm_s)就会报错，因为gm_y的shape可能是2*64*64,而gm_s是4*64*64
             style_loss *= args.style_weight
 
             total_loss = content_loss + style_loss
