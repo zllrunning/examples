@@ -17,7 +17,7 @@ import torchvision.models as models
 
 model_names = sorted(name for name in models.__dict__
     if name.islower() and not name.startswith("__")
-    and callable(models.__dict__[name]))
+    and callable(models.__dict__[name]))                      #可被调用
 
 parser = argparse.ArgumentParser(description='PyTorch ImageNet Training')
 parser.add_argument('data', metavar='DIR',
@@ -108,7 +108,8 @@ def main():
         else:
             print("=> no checkpoint found at '{}'".format(args.resume))
 
-    cudnn.benchmark = True
+    cudnn.benchmark = True   #benchmark mode，cudnn会自动寻找适合硬件的最优算法，对于网络的输入尺寸不变的减少训练时间
+                             #但是对于每次迭代输入的size不同的，可能会导致训练时间更长
 
     # Data loading code
     traindir = os.path.join(args.data, 'train')
